@@ -52,11 +52,20 @@ impl Grid {
                               height: usize,
                               entity_starts: &HashMap<Entity, Location>)
                               -> Result<(), GridError> {
-        for (_, location) in entity_starts.iter() {
+        let mut agent_count: u8 = 0;
+        for (entity, location) in entity_starts.iter() {
+            match entity {
+                &Entity::Agent => agent_count += 1,
+                _ => (),
+            }
             if location.x >= width || location.y >= height {
-                return Err(GridError::StartInvariantError);
+                return Err(GridError::EntityOutOfBoundsError);
+            }
+            if agent_count > 1 {
+                return Err(GridError::MultipleAgentsError);
             }
         }
+        // Todo: Do not allow multiple Entity s to exist in same location.
         Ok(())
     }
 }
@@ -81,5 +90,6 @@ impl Location {
 
 #[derive(Debug)]
 pub enum GridError {
-    StartInvariantError,
+    EntityOutOfBoundsError,
+    MultipleAgentsError,
 }
