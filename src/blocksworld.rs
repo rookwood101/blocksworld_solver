@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::iter;
 
 pub struct Grid {
     grid: Vec<Vec<Entity>>,
@@ -18,7 +19,32 @@ impl Grid {
         Ok(Grid { grid: grid })
     }
     pub fn pretty_print(&self) {
-        println!("test!");
+        let width = self.grid.len();
+        let height = self.grid[0].len();
+
+        let wall_char = '*';
+        let agent_char = '@';
+        let none_char = ' ';
+        let padding_char = ' ';
+
+        let horizontal_wall = iter::repeat(format!("{}{}", wall_char, padding_char))
+            .take(width + 2)
+            .collect::<String>();
+
+        println!("{}", horizontal_wall);
+        for y in 0..height {
+            print!("{}{}", wall_char, padding_char);
+            for x in 0..width {
+                match self.grid[x][y] {
+                    Entity::Agent => print!("{}", agent_char),
+                    Entity::Block(block_char) => print!("{}", block_char),
+                    Entity::None => print!("{}", none_char),
+                }
+                print!("{}", padding_char);
+            }
+            print!("{}\n", wall_char);
+        }
+        println!("{}", horizontal_wall);
     }
 
 
