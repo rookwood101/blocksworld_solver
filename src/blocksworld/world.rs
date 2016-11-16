@@ -1,3 +1,7 @@
+use std::collections::HashMap;
+use std::iter;
+use std::mem;
+
 pub struct World {
     grid: Vec<Vec<Entity>>,
     width: usize,
@@ -142,14 +146,14 @@ impl World {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Hash, Eq)]
+#[derive(Clone, PartialEq, Hash, Eq)]
 pub enum Entity {
     Agent,
     Block(char),
     None,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct Location {
     x: isize,
     y: isize,
@@ -160,7 +164,6 @@ impl Location {
     }
 }
 
-#[derive(Debug)]
 pub enum Direction {
     Up,
     Down,

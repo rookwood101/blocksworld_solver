@@ -1,1 +1,2 @@
-mod world;
+pub mod world;
+pub mod search;
