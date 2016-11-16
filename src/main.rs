@@ -1,6 +1,6 @@
 mod blocksworld;
 
-use blocksworld::*;
+use blocksworld::world::*;
 use std::collections::HashMap;
 
 fn main() {

@@ -1,7 +1,3 @@
-use std::collections::HashMap;
-use std::iter;
-use std::mem;
-
 pub struct World {
     grid: Vec<Vec<Entity>>,
     width: usize,
