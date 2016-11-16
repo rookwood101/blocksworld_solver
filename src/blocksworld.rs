@@ -2,19 +2,19 @@ use std::collections::HashMap;
 use std::iter;
 use std::mem;
 
-pub struct Grid {
+pub struct World {
     grid: Vec<Vec<Entity>>,
     width: usize,
     height: usize,
     agent_location: Location,
 }
 
-impl Grid {
+impl World {
     pub fn new(width: usize,
                height: usize,
                entity_starts: &HashMap<Entity, Location>)
-               -> Result<Grid, GridError> {
-        try!(Grid::check_start_invariants(width, height, entity_starts));
+               -> Result<World, WorldError> {
+        try!(World::check_start_invariants(width, height, entity_starts));
 
         let mut grid = vec![vec![Entity::None; height]; width];
         let mut agent_location = Location::new(0, 0);
@@ -27,7 +27,7 @@ impl Grid {
 
             grid[location.x as usize][location.y as usize] = entity.clone();
         }
-        Ok(Grid {
+        Ok(World {
             grid: grid,
             width: width,
             height: height,
@@ -63,7 +63,7 @@ impl Grid {
         println!("{}", horizontal_wall);
     }
 
-    pub fn clone_and_move_agent(&self, direction: Direction) -> Result<Grid, GridError> {
+    pub fn clone_and_move_agent(&self, direction: Direction) -> Result<World, WorldError> {
         let new_agent_location = Location::new(self.agent_location.x +
                                                match direction {
                                                    Direction::Left => -1,
@@ -77,13 +77,13 @@ impl Grid {
                                                    _ => 0,
                                                });
 
-        try!(Grid::check_agent_location_invariants(&self, &new_agent_location));
+        try!(World::check_agent_location_invariants(&self, &new_agent_location));
 
-        let mut clone_grid = Grid::clone_grid(&self.grid);
+        let mut clone_grid = World::clone_grid(&self.grid);
 
-        Grid::swap_grid_locations(&mut clone_grid, (&self.agent_location, &new_agent_location));
+        World::swap_grid_locations(&mut clone_grid, (&self.agent_location, &new_agent_location));
 
-        Ok(Grid {
+        Ok(World {
             grid: clone_grid,
             agent_location: new_agent_location,
             width: self.width,
@@ -91,13 +91,12 @@ impl Grid {
         })
     }
 
-    fn check_agent_location_invariants(old_grid: &Grid,
+    fn check_agent_location_invariants(world: &World,
                                        new_agent_location: &Location)
-                                       -> Result<(), GridError> {
-        if new_agent_location.x >= old_grid.width as isize || new_agent_location.x <= 0 ||
-           new_agent_location.y >= old_grid.height as isize ||
-           new_agent_location.y <= 0 {
-            return Err(GridError::InvalidAgentMoveError);
+                                       -> Result<(), WorldError> {
+        if new_agent_location.x >= world.width as isize || new_agent_location.x <= 0 ||
+           new_agent_location.y >= world.height as isize || new_agent_location.y <= 0 {
+            return Err(WorldError::InvalidAgentMoveError);
         }
 
         Ok(())
@@ -105,7 +104,7 @@ impl Grid {
     fn check_start_invariants(grid_width: usize,
                               grid_height: usize,
                               entity_starts: &HashMap<Entity, Location>)
-                              -> Result<(), GridError> {
+                              -> Result<(), WorldError> {
         let mut agent_count: u8 = 0;
         for (entity, location) in entity_starts.iter() {
             match *entity {
@@ -114,14 +113,14 @@ impl Grid {
             }
             if location.x >= grid_width as isize || location.x < 0 ||
                location.y >= grid_height as isize || location.y < 0 {
-                return Err(GridError::EntityOutOfBoundsError);
+                return Err(WorldError::EntityOutOfBoundsError);
             }
             if agent_count > 1 {
-                return Err(GridError::InvalidNumberOfAgentsError);
+                return Err(WorldError::InvalidNumberOfAgentsError);
             }
         }
         if agent_count == 0 {
-            return Err(GridError::InvalidNumberOfAgentsError);
+            return Err(WorldError::InvalidNumberOfAgentsError);
         }
         // Todo: Do not allow multiple Entity s to exist in same location.
         Ok(())
@@ -174,7 +173,7 @@ pub enum Direction {
 }
 
 #[derive(Debug)]
-pub enum GridError {
+pub enum WorldError {
     EntityOutOfBoundsError,
     InvalidNumberOfAgentsError,
     InvalidAgentMoveError,
