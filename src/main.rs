@@ -12,4 +12,6 @@ fn main() {
 
     let grid = Grid::new(4, 4, &entity_starts).unwrap();
     grid.pretty_print();
+    let grid2 = grid.clone_and_move_agent(Direction::Up).unwrap();
+    grid2.pretty_print();
 }
