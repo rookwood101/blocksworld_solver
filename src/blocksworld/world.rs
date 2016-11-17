@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::slice;
 use std::iter;
 use std::mem;
 
@@ -63,15 +64,15 @@ impl World {
         println!("{}", horizontal_wall);
     }
 
-    pub fn clone_and_move_agent(&self, direction: Direction) -> Result<World, WorldError> {
-        let new_agent_location = Location::new(self.agent_location.x +
-                                               match direction {
+    pub fn clone_and_move_agent(&self, direction: &Direction) -> Result<World, WorldError> {
+        let new_agent_location = Location::new(self.agent_location.x as isize +
+                                               match *direction {
                                                    Direction::Left => -1,
                                                    Direction::Right => 1,
                                                    _ => 0,
                                                },
-                                               self.agent_location.y +
-                                               match direction {
+                                               self.agent_location.y as isize +
+                                               match *direction {
                                                    Direction::Up => -1,
                                                    Direction::Down => 1,
                                                    _ => 0,
@@ -94,8 +95,8 @@ impl World {
     fn check_agent_location_invariants(world: &World,
                                        new_agent_location: &Location)
                                        -> Result<(), WorldError> {
-        if new_agent_location.x >= world.width as isize || new_agent_location.x <= 0 ||
-           new_agent_location.y >= world.height as isize || new_agent_location.y <= 0 {
+        if new_agent_location.x >= world.width as isize || new_agent_location.x < 0 ||
+           new_agent_location.y >= world.height as isize || new_agent_location.y < 0 {
             return Err(WorldError::InvalidAgentMoveError);
         }
 
