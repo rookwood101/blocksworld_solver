@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 use std::slice;
 use std::iter;
-use std::mem;
 
 pub struct World {
     grid: Vec<Vec<Entity>>,
@@ -130,18 +129,13 @@ impl World {
         grid.iter().map(|column| column.clone()).collect::<Vec<Vec<Entity>>>()
     }
     fn swap_grid_locations(grid: &mut Vec<Vec<Entity>>, locations: (&Location, &Location)) {
-        if locations.0.x == locations.1.x {
-            // If locations are in same Vec, use Vec::swap
-            grid[locations.0.x as usize].swap(locations.0.y as usize, locations.1.y as usize);
-        } else {
-            if locations.0.x < locations.1.x {
-                let mut grid_slices = grid.split_at_mut(locations.1.x as usize);
-                mem::swap(&mut grid_slices.0[locations.0.x as usize][locations.0.y as usize],
-                          &mut grid_slices.1[0][locations.1.y as usize]);
-            } else {
-                let mut grid_slices = grid.split_at_mut(locations.0.x as usize);
-                mem::swap(&mut grid_slices.0[locations.1.x as usize][locations.1.y as usize],
-                          &mut grid_slices.1[0][locations.0.y as usize]);
+        let entities = (grid[locations.0.x as usize][locations.0.y as usize].clone(),
+                        grid[locations.1.x as usize][locations.1.y as usize].clone());
+        grid[locations.0.x as usize][locations.0.y as usize] = entities.1;
+        grid[locations.1.x as usize][locations.1.y as usize] = entities.0;
+    }
+}
+
 impl Clone for World {
     fn clone(&self) -> World {
         World {
