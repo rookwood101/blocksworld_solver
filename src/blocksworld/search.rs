@@ -1,15 +1,15 @@
 use ::blocksworld::world;
 
-struct BreadthFirstSearcher {
-    start_state: world::World,
-    goal_state: world::World,
+pub struct BreadthFirstSearcher {
+    start_world: world::World,
+    goal_world: world::World,
 }
 
 impl BreadthFirstSearcher {
-    pub fn new(start_state: world::World, goal_state: world::World) -> BreadthFirstSearcher {
+    pub fn new(start_world: world::World, goal_world: world::World) -> BreadthFirstSearcher {
         BreadthFirstSearcher {
-            start_state: start_state,
-            goal_state: goal_state,
+            start_world: start_world,
+            goal_world: goal_world,
         }
     }
     pub fn search<'a>() -> Node<'a> {
