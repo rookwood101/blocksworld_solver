@@ -141,8 +141,37 @@ impl World {
                 let mut grid_slices = grid.split_at_mut(locations.0.x as usize);
                 mem::swap(&mut grid_slices.0[locations.1.x as usize][locations.1.y as usize],
                           &mut grid_slices.1[0][locations.0.y as usize]);
+impl Clone for World {
+    fn clone(&self) -> World {
+        World {
+            grid: World::clone_grid(&self.grid),
+            width: self.width,
+            height: self.height,
+            agent_location: self.agent_location.clone(),
+        }
+    }
+}
+impl PartialEq for World {
+    fn eq(&self, other: &World) -> bool {
+        if self.width != other.width || self.height != other.height {
+            return false;
+        }
+        // TODO: implement World::getLocation
+        for x in 0..self.width {
+            for y in 0..self.height {
+                match (&self.grid[x][y], &other.grid[x][y]) {
+                    (&Entity::Agent, &Entity::Agent) |
+                    (&Entity::Agent, &Entity::None) |
+                    (&Entity::None, &Entity::Agent) => continue,// Doesn't matter where the agent is
+                    _ => (),
+                }
+
+                if self.grid[x][y] != other.grid[x][y] {
+                    return false;
+                }
             }
         }
+        true
     }
 }
 
@@ -169,6 +198,13 @@ pub enum Direction {
     Down,
     Left,
     Right,
+}
+impl Direction {
+    pub fn iter() -> slice::Iter<'static, Direction> {
+        static DIRECTIONS: [Direction; 4] =
+            [Direction::Up, Direction::Down, Direction::Left, Direction::Right];
+        DIRECTIONS.into_iter()
+    }
 }
 
 #[derive(Debug)]
