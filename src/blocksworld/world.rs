@@ -35,22 +35,19 @@ impl World {
         })
     }
     pub fn pretty_print(&self) {
-        let width = self.grid.len();
-        let height = self.grid[0].len();
-
         let wall_char = '*';
         let agent_char = '@';
         let none_char = ' ';
         let padding_char = ' ';
 
         let horizontal_wall = iter::repeat(format!("{}{}", wall_char, padding_char))
-            .take(width + 2)
+            .take(self.width + 2)
             .collect::<String>();
 
         println!("{}", horizontal_wall);
-        for y in 0..height {
+        for y in 0..self.height {
             print!("{}{}", wall_char, padding_char);
-            for x in 0..width {
+            for x in 0..self.width {
                 match self.grid[x][y] {
                     Entity::Agent => print!("{}", agent_char),
                     Entity::Block(block_char) => print!("{}", block_char),
