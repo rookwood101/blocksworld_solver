@@ -48,7 +48,7 @@ impl World {
         for y in 0..self.height {
             print!("{}{}", wall_char, padding_char);
             for x in 0..self.width {
-                match self.grid[x][y] {
+                match self.get_grid_location(&Location::new(x as isize, y as isize)) {
                     Entity::Agent => print!("{}", agent_char),
                     Entity::Block(block_char) => print!("{}", block_char),
                     Entity::None => print!("{}", none_char),
@@ -76,16 +76,22 @@ impl World {
 
         try!(World::check_agent_location_invariants(&self, &new_agent_location));
 
-        let mut clone_grid = World::clone_grid(&self.grid);
-
-        World::swap_grid_locations(&mut clone_grid, (&self.agent_location, &new_agent_location));
-
-        Ok(World {
-            grid: clone_grid,
-            agent_location: new_agent_location,
+        let mut clone_world = World {
+            grid: World::clone_grid(&self.grid),
+            agent_location: new_agent_location.clone(),
             width: self.width,
             height: self.height,
-        })
+        };
+
+        clone_world.swap_grid_locations((&self.agent_location, &new_agent_location));
+
+        Ok(clone_world)
+    }
+    pub fn get_grid_location(&self, location: &Location) -> Entity {
+        self.grid[location.x as usize][location.y as usize].clone()
+    }
+    pub fn set_grid_location(&mut self, location: &Location, entity: Entity) {
+        self.grid[location.x as usize][location.y as usize] = entity;
     }
 
     fn check_agent_location_invariants(world: &World,
@@ -125,11 +131,10 @@ impl World {
     fn clone_grid(grid: &Vec<Vec<Entity>>) -> Vec<Vec<Entity>> {
         grid.iter().map(|column| column.clone()).collect::<Vec<Vec<Entity>>>()
     }
-    fn swap_grid_locations(grid: &mut Vec<Vec<Entity>>, locations: (&Location, &Location)) {
-        let entities = (grid[locations.0.x as usize][locations.0.y as usize].clone(),
-                        grid[locations.1.x as usize][locations.1.y as usize].clone());
-        grid[locations.0.x as usize][locations.0.y as usize] = entities.1;
-        grid[locations.1.x as usize][locations.1.y as usize] = entities.0;
+    fn swap_grid_locations(&mut self, locations: (&Location, &Location)) {
+        let entities = (self.get_grid_location(locations.0), self.get_grid_location(locations.1));
+        self.set_grid_location(locations.0, entities.1);
+        self.set_grid_location(locations.1, entities.0);
     }
 }
 
@@ -151,14 +156,16 @@ impl PartialEq for World {
         // TODO: implement World::getLocation
         for x in 0..self.width {
             for y in 0..self.height {
-                match (&self.grid[x][y], &other.grid[x][y]) {
+                let entities = (&self.get_grid_location(&Location::new(x as isize, y as isize)),
+                                &other.get_grid_location(&Location::new(x as isize, y as isize)));
+                match entities {
                     (&Entity::Agent, &Entity::Agent) |
                     (&Entity::Agent, &Entity::None) |
                     (&Entity::None, &Entity::Agent) => continue,// Doesn't matter where the agent is
                     _ => (),
                 }
 
-                if self.grid[x][y] != other.grid[x][y] {
+                if entities.0 != entities.1 {
                     return false;
                 }
             }
