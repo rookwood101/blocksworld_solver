@@ -2,28 +2,17 @@ use ::blocksworld::world;
 use std::collections::VecDeque;
 use std::rc::Rc;
 
-pub struct BreadthFirstSearcher {
-    start_world: world::World,
-    goal_world: world::World,
-}
-
-impl BreadthFirstSearcher {
-    pub fn new(start_world: world::World, goal_world: world::World) -> BreadthFirstSearcher {
-        BreadthFirstSearcher {
-            start_world: start_world,
-            goal_world: goal_world,
-        }
-    }
-    pub fn search(&self) -> Node {
-        let mut fringe_queue = VecDeque::new();
-        fringe_queue.push_back(Node {
+trait Searcher {
+    fn search(&mut self) -> Node {
+        let start_world_clone = self.get_start_world().clone();
+        self.fringe_push(Node {
             depth: 0,
-            world: Box::new(self.start_world.clone()),
+            world: Box::new(start_world_clone),
             parent: None,
         });
 
         loop {
-            let next_node = fringe_queue.pop_front().unwrap();
+            let next_node = self.fringe_pop().unwrap();
             if self.goal_reached(&next_node) {
                 return next_node;
             }
@@ -35,7 +24,7 @@ impl BreadthFirstSearcher {
                 parent_rc.world
                     .clone_and_move_agent(direction)
                     .and_then(|new_world| {
-                        fringe_queue.push_back(Node {
+                        self.fringe_push(Node {
                             depth: child_depth,
                             world: Box::new(new_world),
                             parent: Some(parent_rc.clone()),
@@ -46,9 +35,45 @@ impl BreadthFirstSearcher {
             }
         }
     }
-
     fn goal_reached(&self, node: &Node) -> bool {
-        *node.world == self.goal_world
+        *node.world == *self.get_goal_world()
+    }
+
+    fn get_start_world(&self) -> &world::World;
+    fn get_goal_world(&self) -> &world::World;
+    fn fringe_push(&mut self, node: Node);
+    fn fringe_pop(&mut self) -> Option<Node>;
+}
+
+pub struct BreadthFirstSearcher {
+    start_world: world::World,
+    goal_world: world::World,
+    fringe: VecDeque<Node>,
+}
+impl BreadthFirstSearcher {
+    pub fn new(start_world: world::World, goal_world: world::World) -> BreadthFirstSearcher {
+        BreadthFirstSearcher {
+            start_world: start_world,
+            goal_world: goal_world,
+            fringe: VecDeque::new(),
+        }
+    }
+    pub fn search(&mut self) -> Node {
+        Searcher::search(self)
+    }
+}
+impl Searcher for BreadthFirstSearcher {
+    fn get_start_world(&self) -> &world::World {
+        &self.start_world
+    }
+    fn get_goal_world(&self) -> &world::World {
+        &self.goal_world
+    }
+    fn fringe_push(&mut self, node: Node) {
+        self.fringe.push_back(node);
+    }
+    fn fringe_pop(&mut self) -> Option<Node> {
+        self.fringe.pop_front()
     }
 }
 

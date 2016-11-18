@@ -28,7 +28,7 @@ fn main() {
 
     println!("Beginning Search!");
 
-    let searcher = BreadthFirstSearcher::new(start_world, goal_world);
+    let mut searcher = BreadthFirstSearcher::new(start_world, goal_world);
     let goal_node = searcher.search();
     goal_node.print_tree();
 }
