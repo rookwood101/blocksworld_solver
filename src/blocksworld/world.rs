@@ -1,7 +1,7 @@
 use std::collections::HashMap;
-use std::slice;
 use std::iter;
 
+#[derive(Debug)]
 pub struct World {
     grid: Vec<Vec<Entity>>,
     width: usize,
@@ -174,14 +174,14 @@ impl PartialEq for World {
     }
 }
 
-#[derive(Clone, PartialEq, Hash, Eq)]
+#[derive(Clone, PartialEq, Hash, Eq, Debug)]
 pub enum Entity {
     Agent,
     Block(char),
     None,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Location {
     x: isize,
     y: isize,
@@ -192,6 +192,7 @@ impl Location {
     }
 }
 
+#[derive(Copy, Clone)]
 pub enum Direction {
     Up,
     Down,
@@ -199,10 +200,10 @@ pub enum Direction {
     Right,
 }
 impl Direction {
-    pub fn iter() -> slice::Iter<'static, Direction> {
+    pub fn directions_array() -> [Direction; 4] {
         static DIRECTIONS: [Direction; 4] =
             [Direction::Up, Direction::Down, Direction::Left, Direction::Right];
-        DIRECTIONS.into_iter()
+        DIRECTIONS.clone()
     }
 }
 

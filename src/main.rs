@@ -23,12 +23,15 @@ fn main() {
     entity_goal_positions.insert(Entity::Block('C'), Location::new(1, 3));
     entity_goal_positions.insert(Entity::Agent, Location::new(3, 3));
 
-    let start_world = World::new(4, 4, &easy_entity_start_positions).unwrap();
+    let start_world = World::new(4, 4, &hard_entity_start_positions).unwrap();
     let goal_world = World::new(4, 4, &entity_goal_positions).unwrap();
 
-    println!("Beginning Search!");
-
-    let mut searcher = BreadthFirstSearcher::new(start_world, goal_world);
-    let goal_node = searcher.search();
+    println!("Beginning Depth First Search!");
+    let mut depth_searcher = DepthFirstSearcher::new(start_world.clone(), goal_world.clone());
+    let goal_node = depth_searcher.search();
+    goal_node.print_tree();
+    println!("Beginning Breadth First Search!");
+    let mut breadth_searcher = BreadthFirstSearcher::new(start_world.clone(), goal_world.clone());
+    let goal_node = breadth_searcher.search();
     goal_node.print_tree();
 }
