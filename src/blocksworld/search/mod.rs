@@ -66,6 +66,7 @@ impl Node {
             match parent {
                 &Some(ref node_rc) => {
                     node_rc.world.pretty_print();
+                    println!("{}", node_rc.depth);
                     parent = &node_rc.parent;
                 }
                 &None => break,
