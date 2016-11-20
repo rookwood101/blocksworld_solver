@@ -1,4 +1,4 @@
-use std::collections::LinkedList;
+use std::collections::VecDeque;
 
 use super::Node;
 use super::Searcher;
@@ -7,14 +7,14 @@ use ::blocksworld::world;
 pub struct DepthFirstSearcher {
     start_world: world::World,
     goal_world: world::World,
-    fringe: LinkedList<Node>,
+    fringe: VecDeque<Node>,
 }
 impl DepthFirstSearcher {
     pub fn new(start_world: world::World, goal_world: world::World) -> DepthFirstSearcher {
         DepthFirstSearcher {
             start_world: start_world,
             goal_world: goal_world,
-            fringe: LinkedList::new(),
+            fringe: VecDeque::new(),
         }
     }
     pub fn search(&mut self) -> Node {
