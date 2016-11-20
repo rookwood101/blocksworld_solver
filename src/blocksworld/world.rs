@@ -93,7 +93,40 @@ impl World {
     pub fn set_grid_location(&mut self, location: &Location, entity: Entity) {
         self.grid[location.x as usize][location.y as usize] = entity;
     }
+    pub fn get_grid_width(&self) -> usize {
+        self.width
+    }
+    pub fn get_grid_height(&self) -> usize {
+        self.height
+    }
+    pub fn eq_ignore_agent(&self, other: &World) -> bool {
+        self.eq_(other, true)
+    }
 
+    fn eq_(&self, other: &World, ignore_agent: bool) -> bool {
+        if self.width != other.width || self.height != other.height {
+            return false;
+        }
+        for x in 0..self.width {
+            for y in 0..self.height {
+                let entities = (&self.get_grid_location(&Location::new(x as isize, y as isize)),
+                                &other.get_grid_location(&Location::new(x as isize, y as isize)));
+                if ignore_agent {
+                    match entities {
+                        (&Entity::Agent, &Entity::Agent) |
+                        (&Entity::Agent, &Entity::None) |
+                        (&Entity::None, &Entity::Agent) => continue,// Doesn't matter where the agent is
+                        _ => (),
+                    }
+                }
+
+                if entities.0 != entities.1 {
+                    return false;
+                }
+            }
+        }
+        true
+    }
     fn check_agent_location_invariants(world: &World,
                                        new_agent_location: &Location)
                                        -> Result<(), WorldError> {
@@ -150,27 +183,7 @@ impl Clone for World {
 }
 impl PartialEq for World {
     fn eq(&self, other: &World) -> bool {
-        if self.width != other.width || self.height != other.height {
-            return false;
-        }
-        // TODO: implement World::getLocation
-        for x in 0..self.width {
-            for y in 0..self.height {
-                let entities = (&self.get_grid_location(&Location::new(x as isize, y as isize)),
-                                &other.get_grid_location(&Location::new(x as isize, y as isize)));
-                match entities {
-                    (&Entity::Agent, &Entity::Agent) |
-                    (&Entity::Agent, &Entity::None) |
-                    (&Entity::None, &Entity::Agent) => continue,// Doesn't matter where the agent is
-                    _ => (),
-                }
-
-                if entities.0 != entities.1 {
-                    return false;
-                }
-            }
-        }
-        true
+        self.eq_(other, false)
     }
 }
 
