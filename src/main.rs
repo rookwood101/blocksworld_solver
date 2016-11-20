@@ -26,6 +26,10 @@ fn main() {
     let start_world = World::new(4, 4, &hard_entity_start_positions).unwrap();
     let goal_world = World::new(4, 4, &entity_goal_positions).unwrap();
 
+    println!("Beginning A* Search!");
+    let mut a_star_searcher = AStarSearcher::new(start_world.clone(), goal_world.clone());
+    let goal_node = a_star_searcher.search();
+    goal_node.print_tree();
     println!("Beginning Depth First Search!");
     let mut depth_searcher = DepthFirstSearcher::new(start_world.clone(), goal_world.clone());
     let goal_node = depth_searcher.search();

@@ -3,11 +3,15 @@ extern crate rand;
 use ::blocksworld::world;
 use std::rc::Rc;
 use self::rand::{thread_rng, Rng};
+use std::hash::Hash;
+use std::hash::Hasher;
 
 mod breadth_first_searcher;
 mod depth_first_searcher;
+mod a_star_searcher;
 pub use self::breadth_first_searcher::BreadthFirstSearcher;
 pub use self::depth_first_searcher::DepthFirstSearcher;
+pub use self::a_star_searcher::AStarSearcher;
 
 trait Searcher {
     fn search(&mut self) -> Node {
@@ -44,7 +48,7 @@ trait Searcher {
         }
     }
     fn goal_reached(&self, node: &Node) -> bool {
-        *node.world == *self.get_goal_world()
+        node.world.eq_ignore_agent(self.get_goal_world())
     }
 
     fn get_start_world(&self) -> &world::World;
@@ -53,7 +57,7 @@ trait Searcher {
     fn fringe_pop(&mut self) -> Option<Node>;
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Node {
     depth: u64,
     world: Box<world::World>,
@@ -72,5 +76,20 @@ impl Node {
                 &None => break,
             }
         }
+    }
+}
+impl PartialEq for Node {
+    fn eq(&self, other: &Node) -> bool {
+        if self.world == other.world {
+            true
+        } else {
+            false
+        }
+    }
+}
+impl Eq for Node {}
+impl Hash for Node {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.world.hash(state);
     }
 }

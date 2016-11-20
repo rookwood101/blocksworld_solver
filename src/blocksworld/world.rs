@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::iter;
 
-#[derive(Debug)]
+#[derive(Debug, Hash)]
 pub struct World {
     grid: Vec<Vec<Entity>>,
     width: usize,
@@ -194,7 +194,7 @@ pub enum Entity {
     None,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Hash)]
 pub struct Location {
     x: isize,
     y: isize,
@@ -202,6 +202,9 @@ pub struct Location {
 impl Location {
     pub fn new(x: isize, y: isize) -> Location {
         Location { x: x, y: y }
+    }
+    pub fn distance_to(&self, other: &Location) -> usize {
+        ((self.x - other.x).abs() + (self.y - other.y).abs()) as usize
     }
 }
 
