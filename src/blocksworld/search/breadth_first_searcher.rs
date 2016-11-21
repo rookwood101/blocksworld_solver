@@ -1,13 +1,14 @@
 use std::collections::VecDeque;
+use std::rc::Rc;
 
-use super::Node;
+use super::BasicNode;
 use super::Searcher;
 use ::blocksworld::world;
 
 pub struct BreadthFirstSearcher {
     start_world: world::World,
     goal_world: world::World,
-    fringe: VecDeque<Node>,
+    fringe: VecDeque<BasicNode>,
 }
 impl BreadthFirstSearcher {
     pub fn new(start_world: world::World, goal_world: world::World) -> BreadthFirstSearcher {
@@ -17,21 +18,29 @@ impl BreadthFirstSearcher {
             fringe: VecDeque::new(),
         }
     }
-    pub fn search(&mut self) -> Node {
+    pub fn search(&mut self) -> BasicNode {
         Searcher::search(self)
     }
 }
 impl Searcher for BreadthFirstSearcher {
+    type NodeType = BasicNode;
     fn get_start_world(&self) -> &world::World {
         &self.start_world
     }
     fn get_goal_world(&self) -> &world::World {
         &self.goal_world
     }
-    fn fringe_push(&mut self, node: Node) {
+    fn fringe_push(&mut self, node: Self::NodeType) {
         self.fringe.push_back(node);
     }
-    fn fringe_pop(&mut self) -> Option<Node> {
+    fn fringe_pop(&mut self) -> Option<Self::NodeType> {
         self.fringe.pop_front()
+    }
+    fn new_node(&self,
+                depth: u64,
+                world: Box<world::World>,
+                parent: Option<Rc<Self::NodeType>>)
+                -> Self::NodeType {
+        Self::NodeType::new(depth, world, parent)
     }
 }
