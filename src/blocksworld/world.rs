@@ -186,6 +186,7 @@ impl PartialEq for World {
         self.eq_(other, false)
     }
 }
+impl Eq for World {}
 
 #[derive(Clone, PartialEq, Hash, Eq, Debug)]
 pub enum Entity {

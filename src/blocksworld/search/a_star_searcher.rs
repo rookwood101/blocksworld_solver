@@ -1,6 +1,8 @@
 use std::collections::BinaryHeap;
 use std::collections::HashMap;
 use std::collections::HashSet;
+use std::hash::Hash;
+use std::hash::Hasher;
 use std::cmp::Ordering;
 use std::rc::Rc;
 
@@ -13,7 +15,7 @@ pub struct AStarSearcher {
     goal_world: world::World,
     goal_block_locations: HashMap<world::Entity, world::Location>,
     fringe: BinaryHeap<AStarNode>,
-    explored: HashSet<AStarNode>, // start_to_node_cost: HashMap<AStarNode, usize>,
+    explored_states: HashSet<world::World>,
 }
 impl AStarSearcher {
     pub fn new(start_world: world::World, goal_world: world::World) -> AStarSearcher {
@@ -32,7 +34,7 @@ impl AStarSearcher {
             goal_world: goal_world,
             goal_block_locations: goal_block_locations,
             fringe: BinaryHeap::new(),
-            explored: HashSet::new(), // start_to_node_cost: HashMap::new(),
+            explored_states: HashSet::new(),
         }
     }
     pub fn search(&mut self) -> AStarNode {
@@ -55,7 +57,13 @@ impl AStarSearcher {
         heuristic
     }
     fn is_node_previously_visited(&self, node: &AStarNode) -> bool {
-        self.explored.contains(node)
+        self.explored_states.contains(node.get_world())
+    }
+    fn is_node_unoptimal(&self, node: &AStarNode) -> bool {
+        self.fringe
+            .iter()
+            .filter(|n| *n.get_world() == *node.get_world())
+            .any(|n| node.start_to_self_cost >= n.start_to_self_cost)
     }
 }
 impl Searcher for AStarSearcher {
@@ -67,32 +75,15 @@ impl Searcher for AStarSearcher {
         &self.goal_world
     }
     fn fringe_push(&mut self, node: Self::NodeType) {
-        if self.is_node_previously_visited(&node) {
+        if self.is_node_previously_visited(&node) || self.is_node_unoptimal(&node) {
             return;
         }
-        // match &node.parent {
-        //     &Some(ref parent_rc) => {
-        //         let start_to_parent_cost = *self.start_to_node_cost.get(&*parent_rc).unwrap();
-        //         match self.start_to_node_cost.get(&node) {
-        //             Some(old_start_to_node_cost) => {
-        //                 if start_to_parent_cost + 1 >= *old_start_to_node_cost {
-        //                     return;
-        //                 }
-        //             }
-        //             None => (),
-        //         }
-        //         self.start_to_node_cost.insert(node.clone(), start_to_parent_cost + 1)
-        //     }
-        //     &None => self.start_to_node_cost.insert(node.clone(), 0),
-        // };
-        // let heuristic = self.heuristic(&node);
-        // let start_to_node_cost = *self.start_to_node_cost.get(&node).unwrap();
         self.fringe.push(node);
     }
     fn fringe_pop(&mut self) -> Option<Self::NodeType> {
         match self.fringe.pop() {
             Some(next) => {
-                self.explored.insert(next.clone());
+                self.explored_states.insert(next.get_world().clone());
                 Some(next)
             }
             None => None,
@@ -104,11 +95,15 @@ impl Searcher for AStarSearcher {
                 parent: Option<Rc<Self::NodeType>>)
                 -> Self::NodeType {
         let heuristic = self.heuristic(&*world);
-        AStarNode::new(depth, world, parent, heuristic)
+        let start_to_self_cost = match &parent {
+            &Some(ref parent_rc) => parent_rc.start_to_self_cost + 1,
+            &None => 0,
+        };
+        AStarNode::new(depth, world, parent, heuristic, start_to_self_cost)
     }
 }
 
-#[derive(Hash, Clone)]
+#[derive(Clone)]
 pub struct AStarNode {
     depth: u64,
     world: Box<world::World>,
@@ -120,12 +115,9 @@ impl AStarNode {
     fn new(depth: u64,
            world: Box<world::World>,
            parent: Option<Rc<Self>>,
+           start_to_self_cost: usize,
            heuristic: usize)
            -> Self {
-        let start_to_self_cost = match &parent {
-            &Some(ref parent_rc) => parent_rc.start_to_self_cost + 1,
-            &None => 0,
-        };
         AStarNode {
             depth: depth,
             world: world,
@@ -151,7 +143,7 @@ impl Node for AStarNode {
 }
 impl PartialEq for AStarNode {
     fn eq(&self, other: &AStarNode) -> bool {
-        self.start_to_self_cost + self.heuristic == other.start_to_self_cost + other.heuristic
+        (self.start_to_self_cost + self.heuristic) == (other.start_to_self_cost + other.heuristic)
     }
 }
 impl Eq for AStarNode {}
@@ -164,5 +156,10 @@ impl PartialOrd for AStarNode {
 impl Ord for AStarNode {
     fn cmp(&self, other: &AStarNode) -> Ordering {
         other.partial_cmp(self).unwrap()
+    }
+}
+impl Hash for AStarNode {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.get_world().hash(state)
     }
 }
