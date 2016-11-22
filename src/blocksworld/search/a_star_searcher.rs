@@ -15,7 +15,7 @@ pub struct AStarSearcher {
     goal_world: world::World,
     goal_block_locations: HashMap<world::Entity, world::Location>,
     fringe: BinaryHeap<AStarNode>,
-    explored_states: HashSet<world::World>,
+    explored_states: HashSet<world::World>, // not completely necessary
 }
 impl AStarSearcher {
     pub fn new(start_world: world::World, goal_world: world::World) -> AStarSearcher {
@@ -99,7 +99,7 @@ impl Searcher for AStarSearcher {
             &Some(ref parent_rc) => parent_rc.start_to_self_cost + 1,
             &None => 0,
         };
-        AStarNode::new(depth, world, parent, heuristic, start_to_self_cost)
+        AStarNode::new(depth, world, parent, start_to_self_cost, heuristic)
     }
 }
 
