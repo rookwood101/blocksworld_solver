@@ -6,24 +6,27 @@ use super::Searcher;
 use super::SearcherError;
 use ::blocksworld::world;
 
-pub struct BreadthFirstSearcher {
+pub struct IterativeDeepeningSearcher {
     start_world: world::World,
     goal_world: world::World,
     fringe: VecDeque<BasicNode>,
 }
-impl BreadthFirstSearcher {
-    pub fn new(start_world: world::World, goal_world: world::World) -> BreadthFirstSearcher {
-        BreadthFirstSearcher {
+impl IterativeDeepeningSearcher {
+    pub fn new(start_world: world::World, goal_world: world::World) -> IterativeDeepeningSearcher {
+        IterativeDeepeningSearcher {
             start_world: start_world,
             goal_world: goal_world,
             fringe: VecDeque::new(),
         }
     }
     pub fn search(&mut self) -> Result<BasicNode, SearcherError> {
-        Searcher::search(self, None)
+        (0..)
+            .map(|max_depth| Searcher::search(self, Some(max_depth)))
+            .find(|result| result.is_ok())
+            .unwrap()
     }
 }
-impl Searcher for BreadthFirstSearcher {
+impl Searcher for IterativeDeepeningSearcher {
     type NodeType = BasicNode;
     fn get_start_world(&self) -> &world::World {
         &self.start_world
@@ -35,7 +38,7 @@ impl Searcher for BreadthFirstSearcher {
         self.fringe.push_back(node);
     }
     fn fringe_pop(&mut self) -> Option<Self::NodeType> {
-        self.fringe.pop_front()
+        self.fringe.pop_back()
     }
     fn new_node(&self,
                 depth: u64,

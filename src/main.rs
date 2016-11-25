@@ -29,13 +29,18 @@ fn main() {
     println!("Beginning A* Search!");
     let mut a_star_searcher = AStarSearcher::new(start_world.clone(), goal_world.clone());
     let goal_node = a_star_searcher.search();
-    goal_node.print_tree();
+    goal_node.unwrap().print_tree();
+    println!("Beginning Iterative Deepening Search!");
+    let mut iterative_deepening_searcher = IterativeDeepeningSearcher::new(start_world.clone(),
+                                                                           goal_world.clone());
+    let goal_node = iterative_deepening_searcher.search();
+    goal_node.unwrap().print_tree();
     println!("Beginning Depth First Search!");
     let mut depth_searcher = DepthFirstSearcher::new(start_world.clone(), goal_world.clone());
     let goal_node = depth_searcher.search();
-    goal_node.print_tree();
+    goal_node.unwrap().print_tree();
     println!("Beginning Breadth First Search!");
     let mut breadth_searcher = BreadthFirstSearcher::new(start_world.clone(), goal_world.clone());
     let goal_node = breadth_searcher.search();
-    goal_node.print_tree();
+    goal_node.unwrap().print_tree();
 }

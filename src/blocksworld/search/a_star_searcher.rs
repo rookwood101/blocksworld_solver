@@ -5,6 +5,7 @@ use std::rc::Rc;
 
 use super::Node;
 use super::Searcher;
+use super::SearcherError;
 use ::blocksworld::world;
 
 pub struct AStarSearcher {
@@ -32,8 +33,8 @@ impl AStarSearcher {
             fringe: BinaryHeap::new(),
         }
     }
-    pub fn search(&mut self) -> AStarNode {
-        Searcher::search(self)
+    pub fn search(&mut self) -> Result<AStarNode, SearcherError> {
+        Searcher::search(self, None)
     }
     fn heuristic(&self, world: &world::World) -> usize {
         let mut heuristic = 0;

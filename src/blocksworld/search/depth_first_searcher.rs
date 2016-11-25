@@ -3,6 +3,7 @@ use std::rc::Rc;
 
 use super::BasicNode;
 use super::Searcher;
+use super::SearcherError;
 use ::blocksworld::world;
 
 pub struct DepthFirstSearcher {
@@ -18,8 +19,8 @@ impl DepthFirstSearcher {
             fringe: VecDeque::new(),
         }
     }
-    pub fn search(&mut self) -> BasicNode {
-        Searcher::search(self)
+    pub fn search(&mut self) -> Result<BasicNode, SearcherError> {
+        Searcher::search(self, None)
     }
 }
 impl Searcher for DepthFirstSearcher {
