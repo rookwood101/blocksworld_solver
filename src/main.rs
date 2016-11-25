@@ -1,23 +1,26 @@
+extern crate bidir_map;
+
+use bidir_map::BidirMap;
+
 mod blocksworld;
 
 use blocksworld::world::*;
 use blocksworld::search::*;
-use std::collections::HashMap;
 
 fn main() {
-    let mut hard_entity_start_positions = HashMap::new();
+    let mut hard_entity_start_positions = BidirMap::new();
     hard_entity_start_positions.insert(Entity::Block('A'), Location::new(0, 3));
     hard_entity_start_positions.insert(Entity::Block('B'), Location::new(1, 3));
     hard_entity_start_positions.insert(Entity::Block('C'), Location::new(2, 3));
     hard_entity_start_positions.insert(Entity::Agent, Location::new(3, 3));
 
-    let mut easy_entity_start_positions = HashMap::new();
+    let mut easy_entity_start_positions = BidirMap::new();
     easy_entity_start_positions.insert(Entity::Block('A'), Location::new(1, 1));
     easy_entity_start_positions.insert(Entity::Block('B'), Location::new(1, 2));
     easy_entity_start_positions.insert(Entity::Block('C'), Location::new(0, 3));
     easy_entity_start_positions.insert(Entity::Agent, Location::new(2, 3));
 
-    let mut entity_goal_positions = HashMap::new();
+    let mut entity_goal_positions = BidirMap::new();
     entity_goal_positions.insert(Entity::Block('A'), Location::new(1, 1));
     entity_goal_positions.insert(Entity::Block('B'), Location::new(1, 2));
     entity_goal_positions.insert(Entity::Block('C'), Location::new(1, 3));

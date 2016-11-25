@@ -26,9 +26,9 @@ impl AStarSearcher {
     fn heuristic(&self, world: &world::World) -> usize {
         world.entities
             .iter()
-            .filter(|&(ent, _)| *ent != world::Entity::Agent)
-            .map(|(ent, loc)| {
-                loc.distance_to(self.get_goal_world().get_entity_location(ent).unwrap())
+            .filter(|&&(ref ent, _)| *ent != world::Entity::Agent)
+            .map(|&(ref ent, ref loc)| {
+                loc.distance_to(self.get_goal_world().get_entity_location(&ent).unwrap())
             })
             .sum::<usize>()
     }

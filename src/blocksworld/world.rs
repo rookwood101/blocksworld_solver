@@ -1,9 +1,10 @@
-use std::collections::HashMap;
+use bidir_map::BidirMap;
+
 use std::iter;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct World {
-    pub entities: HashMap<Entity, Location>,
+    pub entities: BidirMap<Entity, Location>,
     width: isize,
     height: isize,
 }
@@ -11,7 +12,7 @@ pub struct World {
 impl World {
     pub fn new(width: usize,
                height: usize,
-               entity_starts: &HashMap<Entity, Location>)
+               entity_starts: &BidirMap<Entity, Location>)
                -> Result<World, WorldError> {
         let width = width as isize;
         let height = height as isize;
@@ -50,7 +51,7 @@ impl World {
     }
 
     pub fn clone_and_move_agent(&self, direction: &Direction) -> Result<World, WorldError> {
-        let old_agent_location = self.entities.get(&Entity::Agent).unwrap();
+        let old_agent_location = self.entities.get_by_first(&Entity::Agent).unwrap();
         let new_agent_location = Location::new(old_agent_location.x +
                                                match *direction {
                                                    Direction::Left => -1,
@@ -79,14 +80,10 @@ impl World {
     }
     pub fn get_grid_location(&self, location: &Location) -> Result<Entity, WorldError> {
         Self::check_location_invariants(self.width, self.height, location)?;
-        Ok(self.entities
-            .iter()
-            .find(|&(_, loc)| loc == location)
-            .map(|(ent, _)| ent.clone())
-            .unwrap_or(Entity::None))
+        Ok(self.entities.get_by_second(location).map(|ent| ent.clone()).unwrap_or(Entity::None))
     }
     pub fn get_entity_location(&self, entity: &Entity) -> Result<&Location, WorldError> {
-        self.entities.get(entity).ok_or(WorldError::NonExistentEntityError)
+        self.entities.get_by_first(entity).ok_or(WorldError::NonExistentEntityError)
     }
     pub fn set_entity_location(&mut self, entity: Entity, location: Location) {
         self.entities.insert(entity, location).unwrap();
@@ -100,8 +97,8 @@ impl World {
         }
         self.entities
             .iter()
-            .filter(|&(ent, _)| *ent != Entity::Agent)
-            .all(|(ent, loc)| other.entities.get(ent) == Some(loc))
+            .filter(|&&(ref ent, _)| *ent != Entity::Agent)
+            .all(|&(ref ent, ref loc)| other.entities.get_by_first(ent) == Some(loc))
     }
 
     fn check_location_invariants(width: isize,
@@ -117,15 +114,15 @@ impl World {
     }
     fn check_start_invariants(grid_width: isize,
                               grid_height: isize,
-                              entity_starts: &HashMap<Entity, Location>)
+                              entity_starts: &BidirMap<Entity, Location>)
                               -> Result<(), WorldError> {
         let mut agent_count: u8 = 0;
-        for (entity, location) in entity_starts.iter() {
+        for &(ref entity, ref location) in entity_starts.iter() {
             match *entity {
                 Entity::Agent => agent_count += 1,
                 _ => (),
             }
-            Self::check_location_invariants(grid_width, grid_height, location)?;
+            Self::check_location_invariants(grid_width, grid_height, &location)?;
             if agent_count > 1 {
                 return Err(WorldError::InvalidNumberOfAgentsError);
             }
