@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::iter;
 
-#[derive(Debug, Hash)]
+#[derive(Debug)]
 pub struct World {
     grid: Vec<Vec<Entity>>,
     width: usize,
