@@ -1,12 +1,11 @@
 use std::collections::HashMap;
 use std::iter;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct World {
-    grid: Vec<Vec<Entity>>,
-    width: usize,
-    height: usize,
-    agent_location: Location,
+    pub entities: HashMap<Entity, Location>,
+    width: isize,
+    height: isize,
 }
 
 impl World {
@@ -14,24 +13,14 @@ impl World {
                height: usize,
                entity_starts: &HashMap<Entity, Location>)
                -> Result<World, WorldError> {
+        let width = width as isize;
+        let height = height as isize;
         World::check_start_invariants(width, height, entity_starts)?;
 
-        let mut grid = vec![vec![Entity::None; height]; width];
-        let mut agent_location = Location::new(0, 0);
-
-        for (entity, location) in entity_starts.iter() {
-            match *entity {
-                Entity::Agent => agent_location = location.clone(),
-                _ => (),
-            }
-
-            grid[location.x as usize][location.y as usize] = entity.clone();
-        }
         Ok(World {
-            grid: grid,
+            entities: entity_starts.clone(),
             width: width,
             height: height,
-            agent_location: agent_location,
         })
     }
     pub fn pretty_print(&self) {
@@ -41,14 +30,14 @@ impl World {
         let padding_char = ' ';
 
         let horizontal_wall = iter::repeat(format!("{}{}", wall_char, padding_char))
-            .take(self.width + 2)
+            .take(self.width as usize + 2)
             .collect::<String>();
 
         println!("{}", horizontal_wall);
         for y in 0..self.height {
             print!("{}{}", wall_char, padding_char);
             for x in 0..self.width {
-                match self.get_grid_location(&Location::new(x as isize, y as isize)) {
+                match self.get_grid_location(&Location::new(x, y)).unwrap() {
                     Entity::Agent => print!("{}", agent_char),
                     Entity::Block(block_char) => print!("{}", block_char),
                     Entity::None => print!("{}", none_char),
@@ -61,84 +50,73 @@ impl World {
     }
 
     pub fn clone_and_move_agent(&self, direction: &Direction) -> Result<World, WorldError> {
-        let new_agent_location = Location::new(self.agent_location.x as isize +
+        let old_agent_location = self.entities.get(&Entity::Agent).unwrap();
+        let new_agent_location = Location::new(old_agent_location.x +
                                                match *direction {
                                                    Direction::Left => -1,
                                                    Direction::Right => 1,
                                                    _ => 0,
                                                },
-                                               self.agent_location.y as isize +
+                                               old_agent_location.y +
                                                match *direction {
                                                    Direction::Up => -1,
                                                    Direction::Down => 1,
                                                    _ => 0,
                                                });
 
-        World::check_agent_location_invariants(&self, &new_agent_location)?;
+        Self::check_location_invariants(self.width, self.height, &new_agent_location)?;
 
-        let mut clone_world = World {
-            grid: World::clone_grid(&self.grid),
-            agent_location: new_agent_location.clone(),
-            width: self.width,
-            height: self.height,
-        };
+        let mut clone_world = self.clone();
 
-        clone_world.swap_grid_locations((&self.agent_location, &new_agent_location));
+        let new_agent_location_entity = clone_world.get_grid_location(&new_agent_location).unwrap();
+        match new_agent_location_entity {
+            Entity::None => (),
+            _ => clone_world.set_entity_location(new_agent_location_entity, old_agent_location.clone()),
+        }
+        clone_world.set_entity_location(Entity::Agent, new_agent_location);
 
         Ok(clone_world)
     }
-    pub fn get_grid_location(&self, location: &Location) -> Entity {
-        self.grid[location.x as usize][location.y as usize].clone()
+    pub fn get_grid_location(&self, location: &Location) -> Result<Entity, WorldError> {
+        Self::check_location_invariants(self.width, self.height, location)?;
+        Ok(self.entities
+            .iter()
+            .find(|&(_, loc)| loc == location)
+            .map(|(ent, _)| ent.clone())
+            .unwrap_or(Entity::None))
     }
-    pub fn set_grid_location(&mut self, location: &Location, entity: Entity) {
-        self.grid[location.x as usize][location.y as usize] = entity;
+    pub fn get_entity_location(&self, entity: &Entity) -> Result<&Location, WorldError> {
+        self.entities.get(entity).ok_or(WorldError::NonExistentEntityError)
     }
-    pub fn get_grid_width(&self) -> usize {
-        self.width
-    }
-    pub fn get_grid_height(&self) -> usize {
-        self.height
+    pub fn set_entity_location(&mut self, entity: Entity, location: Location) {
+        self.entities.insert(entity, location).unwrap();
     }
     pub fn eq_ignore_agent(&self, other: &World) -> bool {
-        self.eq_(other, true)
-    }
-
-    fn eq_(&self, other: &World, ignore_agent: bool) -> bool {
         if self.width != other.width || self.height != other.height {
             return false;
         }
-        for x in 0..self.width {
-            for y in 0..self.height {
-                let entities = (&self.get_grid_location(&Location::new(x as isize, y as isize)),
-                                &other.get_grid_location(&Location::new(x as isize, y as isize)));
-                if ignore_agent {
-                    match entities {
-                        (&Entity::Agent, &Entity::Agent) |
-                        (&Entity::Agent, &Entity::None) |
-                        (&Entity::None, &Entity::Agent) => continue,// Doesn't matter where the agent is
-                        _ => (),
-                    }
-                }
-
-                if entities.0 != entities.1 {
-                    return false;
-                }
-            }
+        if self.entities.len() != other.entities.len() {
+            return false;
         }
-        true
+        self.entities
+            .iter()
+            .filter(|&(ent, _)| *ent != Entity::Agent)
+            .all(|(ent, loc)| other.entities.get(ent) == Some(loc))
     }
-    fn check_agent_location_invariants(world: &World,
-                                       new_agent_location: &Location)
-                                       -> Result<(), WorldError> {
-        if new_agent_location.x >= world.width as isize || new_agent_location.x < 0 ||
-           new_agent_location.y >= world.height as isize || new_agent_location.y < 0 {
-            return Err(WorldError::InvalidAgentMoveError);
+
+    fn check_location_invariants(width: isize,
+                                 height: isize,
+                                 location: &Location)
+                                 -> Result<(), WorldError> {
+        if location.x >= width || location.x < 0 || location.y >= height as isize ||
+           location.y < 0 {
+            return Err(WorldError::EntityOutOfBoundsError);
         }
 
         Ok(())
     }
-    fn check_start_invariants(grid_width: usize,
-                              grid_height: usize,
+    fn check_start_invariants(grid_width: isize,
+                              grid_height: isize,
                               entity_starts: &HashMap<Entity, Location>)
                               -> Result<(), WorldError> {
         let mut agent_count: u8 = 0;
@@ -147,10 +125,7 @@ impl World {
                 Entity::Agent => agent_count += 1,
                 _ => (),
             }
-            if location.x >= grid_width as isize || location.x < 0 ||
-               location.y >= grid_height as isize || location.y < 0 {
-                return Err(WorldError::EntityOutOfBoundsError);
-            }
+            Self::check_location_invariants(grid_width, grid_height, location)?;
             if agent_count > 1 {
                 return Err(WorldError::InvalidNumberOfAgentsError);
             }
@@ -161,32 +136,8 @@ impl World {
         // Todo: Do not allow multiple Entity s to exist in same location.
         Ok(())
     }
-    fn clone_grid(grid: &Vec<Vec<Entity>>) -> Vec<Vec<Entity>> {
-        grid.iter().map(|column| column.clone()).collect::<Vec<Vec<Entity>>>()
-    }
-    fn swap_grid_locations(&mut self, locations: (&Location, &Location)) {
-        let entities = (self.get_grid_location(locations.0), self.get_grid_location(locations.1));
-        self.set_grid_location(locations.0, entities.1);
-        self.set_grid_location(locations.1, entities.0);
-    }
 }
 
-impl Clone for World {
-    fn clone(&self) -> World {
-        World {
-            grid: World::clone_grid(&self.grid),
-            width: self.width,
-            height: self.height,
-            agent_location: self.agent_location.clone(),
-        }
-    }
-}
-impl PartialEq for World {
-    fn eq(&self, other: &World) -> bool {
-        self.eq_(other, false)
-    }
-}
-impl Eq for World {}
 
 #[derive(Clone, PartialEq, Hash, Eq, Debug)]
 pub enum Entity {
@@ -195,7 +146,7 @@ pub enum Entity {
     None,
 }
 
-#[derive(Clone, Debug, Hash)]
+#[derive(Clone, Debug, Hash, PartialEq)]
 pub struct Location {
     x: isize,
     y: isize,
@@ -228,5 +179,5 @@ impl Direction {
 pub enum WorldError {
     EntityOutOfBoundsError,
     InvalidNumberOfAgentsError,
-    InvalidAgentMoveError,
+    NonExistentEntityError,
 }

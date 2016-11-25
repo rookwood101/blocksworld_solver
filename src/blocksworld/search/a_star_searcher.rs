@@ -1,5 +1,4 @@
 use std::collections::BinaryHeap;
-use std::collections::HashMap;
 use std::cmp::Ordering;
 use std::rc::Rc;
 
@@ -11,25 +10,13 @@ use ::blocksworld::world;
 pub struct AStarSearcher {
     start_world: world::World,
     goal_world: world::World,
-    goal_block_locations: HashMap<world::Entity, world::Location>,
     fringe: BinaryHeap<AStarNode>,
 }
 impl AStarSearcher {
     pub fn new(start_world: world::World, goal_world: world::World) -> AStarSearcher {
-        let mut goal_block_locations = HashMap::new();
-        for x in 0..goal_world.get_grid_width() {
-            for y in 0..goal_world.get_grid_height() {
-                let location = world::Location::new(x as isize, y as isize);
-                match goal_world.get_grid_location(&location) {
-                    block @ world::Entity::Block(_) => goal_block_locations.insert(block, location),
-                    _ => None,
-                };
-            }
-        }
         AStarSearcher {
             start_world: start_world,
             goal_world: goal_world,
-            goal_block_locations: goal_block_locations,
             fringe: BinaryHeap::new(),
         }
     }
@@ -37,20 +24,13 @@ impl AStarSearcher {
         Searcher::search(self, None)
     }
     fn heuristic(&self, world: &world::World) -> usize {
-        let mut heuristic = 0;
-        for x in 0..world.get_grid_width() {
-            for y in 0..world.get_grid_height() {
-                let location = world::Location::new(x as isize, y as isize);
-                match world.get_grid_location(&location) {
-                    block @ world::Entity::Block(_) => {
-                        let goal_location = self.goal_block_locations.get(&block).unwrap();
-                        heuristic += location.distance_to(goal_location);
-                    }
-                    _ => (),
-                }
-            }
-        }
-        heuristic
+        world.entities
+            .iter()
+            .filter(|&(ent, _)| *ent != world::Entity::Agent)
+            .map(|(ent, loc)| {
+                loc.distance_to(self.get_goal_world().get_entity_location(ent).unwrap())
+            })
+            .sum::<usize>()
     }
     fn is_node_unoptimal(&self, node: &AStarNode) -> bool {
         self.fringe
