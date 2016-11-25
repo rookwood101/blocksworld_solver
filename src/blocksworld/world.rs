@@ -14,7 +14,7 @@ impl World {
                height: usize,
                entity_starts: &HashMap<Entity, Location>)
                -> Result<World, WorldError> {
-        try!(World::check_start_invariants(width, height, entity_starts));
+        World::check_start_invariants(width, height, entity_starts)?;
 
         let mut grid = vec![vec![Entity::None; height]; width];
         let mut agent_location = Location::new(0, 0);
@@ -74,7 +74,7 @@ impl World {
                                                    _ => 0,
                                                });
 
-        try!(World::check_agent_location_invariants(&self, &new_agent_location));
+        World::check_agent_location_invariants(&self, &new_agent_location)?;
 
         let mut clone_world = World {
             grid: World::clone_grid(&self.grid),
