@@ -2,8 +2,14 @@
 name = "blocksworld_solver"
 version = "0.1.0"
 dependencies = [
+ "bidir-map 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand 0.3.14 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
+
+[[package]]
+name = "bidir-map"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "libc"
@@ -19,5 +25,6 @@ dependencies = [
 ]
 
 [metadata]
+"checksum bidir-map 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)" = "2634f317a2b6280bdf46b67ccd235f3ddad6b0f91d4fa9d5235381eb5f7848e7"
 "checksum libc 0.2.17 (registry+https://github.com/rust-lang/crates.io-index)" = "044d1360593a78f5c8e5e710beccdc24ab71d1f01bc19a29bcacdba22e8475d8"
 "checksum rand 0.3.14 (registry+https://github.com/rust-lang/crates.io-index)" = "2791d88c6defac799c3f20d74f094ca33b9332612d9aef9078519c82e4fe04a5"

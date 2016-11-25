@@ -5,3 +5,4 @@ authors = ["alex"]
 
 [dependencies]
 rand = "0.3.14"
+bidir-map = "0.3.0"
