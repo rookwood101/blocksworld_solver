@@ -19,9 +19,17 @@ impl IterativeDeepeningSearcher {
             fringe: VecDeque::new(),
         }
     }
-    pub fn search(&mut self) -> Result<BasicNode, SearcherError> {
+    pub fn search(&mut self) -> Result<(BasicNode, u64), (SearcherError, u64)> {
+        let mut expanded_nodes = 0;
         (0..)
-            .map(|max_depth| Searcher::search(self, Some(max_depth)))
+            .map(|max_depth| {
+                let search = Searcher::search(self, Some(max_depth));
+                expanded_nodes += match search {
+                    Ok((_, exp_nod)) => exp_nod,
+                    Err((_, exp_nod)) => exp_nod,
+                };
+                search
+            })
             .find(|result| result.is_ok())
             .unwrap()
     }

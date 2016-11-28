@@ -19,7 +19,7 @@ impl DepthFirstSearcher {
             fringe: VecDeque::new(),
         }
     }
-    pub fn search(&mut self) -> Result<BasicNode, SearcherError> {
+    pub fn search(&mut self) -> Result<(BasicNode, u64), (SearcherError, u64)> {
         Searcher::search(self, None)
     }
 }

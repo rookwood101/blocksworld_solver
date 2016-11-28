@@ -13,9 +13,9 @@ pub use self::depth_first_searcher::DepthFirstSearcher;
 pub use self::iterative_deepening_searcher::IterativeDeepeningSearcher;
 pub use self::a_star_searcher::AStarSearcher;
 
-trait Searcher {
+pub trait Searcher {
     type NodeType: Node;
-    fn search(&mut self, max_depth: Option<u64>) -> Result<Self::NodeType, SearcherError> {
+    fn search(&mut self, max_depth: Option<u64>) -> Result<(Self::NodeType, u64), (SearcherError, u64)> {
         let start_world_clone = self.get_start_world().clone();
         let root_node = self.new_node(0, Box::new(start_world_clone), None);
         self.fringe_push(root_node);
@@ -24,11 +24,10 @@ trait Searcher {
         let mut directions = world::Direction::directions_array();
         loop {
             let parent_rc = Rc::new(self.fringe_pop()
-                .ok_or(SearcherError::GoalNotFoundError)?);
+                .ok_or((SearcherError::GoalNotFoundError, expanded_nodes))?);
             if self.goal_reached(&*parent_rc) {
-                println!("Expanded Nodes: {}", expanded_nodes);
                 return match Rc::try_unwrap(parent_rc) {
-                    Ok(node) => Ok(node),
+                    Ok(node) => Ok((node, expanded_nodes)),
                     Err(_) => unreachable!(),
                 };
             }
@@ -102,7 +101,7 @@ pub struct BasicNode {
     parent: Option<Rc<BasicNode>>,
 }
 impl BasicNode {
-    fn new(depth: u64, world: Box<world::World>, parent: Option<Rc<Self>>) -> Self {
+    pub fn new(depth: u64, world: Box<world::World>, parent: Option<Rc<Self>>) -> Self {
         BasicNode {
             depth: depth,
             world: world,

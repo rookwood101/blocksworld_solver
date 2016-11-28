@@ -20,7 +20,7 @@ impl AStarSearcher {
             fringe: BinaryHeap::new(),
         }
     }
-    pub fn search(&mut self) -> Result<AStarNode, SearcherError> {
+    pub fn search(&mut self) -> Result<(AStarNode, u64), (SearcherError, u64)> {
         Searcher::search(self, None)
     }
     fn heuristic(&self, world: &world::World) -> usize {
