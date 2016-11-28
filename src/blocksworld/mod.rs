@@ -1,3 +1,3 @@
 pub mod world;
 pub mod search;
-mod test;
+pub mod test;
