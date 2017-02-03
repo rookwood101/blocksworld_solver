@@ -10,8 +10,8 @@ use blocksworld::search::{AStarSearcher, DepthFirstSearcher, BreadthFirstSearche
 use blocksworld::test::test;
 
 fn main() {
-    // basic_test();
-    test();
+    basic_test();
+    // test();
 }
 
 fn basic_test() {

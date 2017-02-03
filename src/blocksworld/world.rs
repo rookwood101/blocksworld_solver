@@ -49,6 +49,31 @@ impl World {
         }
         println!("{}", horizontal_wall);
     }
+    pub fn latex_print(&self) {
+        let wall_char = '*';
+        let agent_char = '@';
+        let none_char = '~';
+        let padding_char = '~';
+
+        let horizontal_wall = iter::repeat(format!("{}{}", wall_char, padding_char))
+            .take(self.width as usize + 2)
+            .collect::<String>();
+
+        print!("{}\\\\{}", horizontal_wall, wall_char);
+        for y in 0..self.height {
+            print!("{}{}", wall_char, padding_char);
+            for x in 0..self.width {
+                match self.get_grid_location(&Location::new(x, y)).unwrap() {
+                    Entity::Agent => print!("{}", agent_char),
+                    Entity::Block(block_char) => print!("{}", block_char),
+                    Entity::None => print!("{}", none_char),
+                }
+                print!("{}", padding_char);
+            }
+            print!("{}\\\\{}", wall_char, wall_char);
+        }
+        println!("{}\\\\", horizontal_wall);
+    }
 
     pub fn clone_and_move_agent(&self, direction: &Direction) -> Result<World, WorldError> {
         let old_agent_location = self.entities.get_by_first(&Entity::Agent).unwrap();
