@@ -11,6 +11,8 @@ pub fn solution_depth_difficulty(goal_world: World) -> Vec<(u8, World)> {
     searcher.search()
 }
 
+// Uses a depth first style search to find problems of difficulties up to a certain difficulty.
+// Each node generated has an A* search run on it to find its optimal path  size to the goal.
 pub struct SolutionDepthSearcher {
     start_world: World,
     fringe: Option<BasicNode>,
@@ -54,6 +56,7 @@ impl Searcher for SolutionDepthSearcher {
             ::blocksworld::search::AStarSearcher::new(node.get_world().clone(),
                                                       self.get_goal_world().clone());
         let result = a_star_searcher.search().unwrap();
+        // If we haven't already found a problem world at this depth, add it, to the Map
         if !self.solutions.contains_key(&(result.0.get_depth() as u8)) {
             self.solutions.insert(result.0.get_depth() as u8, node.get_world().clone());
             println!("New solution, depth {}", result.0.get_depth());

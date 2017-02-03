@@ -21,6 +21,8 @@ impl IterativeDeepeningSearcher {
     }
     pub fn search(&mut self) -> Result<(BasicNode, u32), (SearcherError, u32)> {
         let mut expanded_nodes = 0;
+        // Increase the max depth from zero until the goal is found
+        // Sums up the expanded nodes for every iteration
         (0..)
             .map(|max_depth| {
                 let search = Searcher::search(self, Some(max_depth));

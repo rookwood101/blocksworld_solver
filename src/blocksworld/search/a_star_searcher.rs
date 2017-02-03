@@ -23,6 +23,8 @@ impl AStarSearcher {
     pub fn search(&mut self) -> Result<(AStarNode, u32), (SearcherError, u32)> {
         Searcher::search(self, None)
     }
+
+    // Calculates manhattan distance between given world and goal world for each block.
     fn heuristic(&self, world: &world::World) -> usize {
         world.entities
             .iter()
@@ -32,6 +34,9 @@ impl AStarSearcher {
             })
             .sum::<usize>()
     }
+
+    // If a node's world state is already in the fringe,
+    // and the node containing it has a higher priority, don't add this new node.
     fn is_node_unoptimal(&self, node: &AStarNode) -> bool {
         self.fringe
             .iter()
@@ -62,7 +67,7 @@ impl Searcher for AStarSearcher {
                 parent: Option<Rc<Self::NodeType>>)
                 -> Self::NodeType {
         let heuristic = self.heuristic(&*world);
-        let start_to_self_cost = match &parent {
+        let start_to_self_cost = match &parent { // Each node is only 1 move away from its parent.
             &Some(ref parent_rc) => parent_rc.start_to_self_cost + 1,
             &None => 0,
         };
@@ -108,6 +113,8 @@ impl Node for AStarNode {
         }
     }
 }
+
+// The below code sets up ordering so that the priority queue will order nodes by their f(n), minimum at the top.
 impl PartialEq for AStarNode {
     fn eq(&self, other: &AStarNode) -> bool {
         (self.start_to_self_cost + self.heuristic) == (other.start_to_self_cost + other.heuristic)

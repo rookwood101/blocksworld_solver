@@ -15,6 +15,10 @@ pub use self::a_star_searcher::AStarSearcher;
 
 pub trait Searcher {
     type NodeType: Node;
+
+    // search() performs the main loop of a search operation
+    // - pushing children to the fringe and popping the next node for checking.
+    // Returns either Ok(goal_node, expanded_nodes) or Err(error, expanded_nodes)
     fn search(&mut self,
               max_depth: Option<u32>)
               -> Result<(Self::NodeType, u32), (SearcherError, u32)> {
@@ -62,7 +66,7 @@ pub trait Searcher {
         }
     }
     fn goal_reached(&self, node: &Self::NodeType) -> bool {
-        node.get_world().eq_ignore_agent(self.get_goal_world())
+        node.get_world().eq_ignore_agent(self.get_goal_world())// The agent location doesn't matter.
     }
 
     fn new_node(&self,
@@ -80,6 +84,8 @@ pub trait Node {
     fn get_world(&self) -> &world::World;
     fn get_depth(&self) -> u32;
     fn get_parent(&self) -> Option<Rc<Self>>;
+
+    // Prints a node's parents and their parents etc. until it reaches the root
     fn print_tree(&self) {
         self.get_world().pretty_print();
         println!("{}", self.get_depth());
@@ -97,6 +103,7 @@ pub trait Node {
     }
 }
 
+// A node implementing the most basic level of features.
 pub struct BasicNode {
     depth: u32,
     world: Box<world::World>,
