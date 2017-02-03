@@ -19,7 +19,7 @@ impl DepthFirstSearcher {
             fringe: VecDeque::new(),
         }
     }
-    pub fn search(&mut self) -> Result<(BasicNode, u64), (SearcherError, u64)> {
+    pub fn search(&mut self) -> Result<(BasicNode, u32), (SearcherError, u32)> {
         Searcher::search(self, None)
     }
 }
@@ -38,7 +38,7 @@ impl Searcher for DepthFirstSearcher {
         self.fringe.pop_back()
     }
     fn new_node(&self,
-                depth: u64,
+                depth: u32,
                 world: Box<world::World>,
                 parent: Option<Rc<Self::NodeType>>)
                 -> Self::NodeType {

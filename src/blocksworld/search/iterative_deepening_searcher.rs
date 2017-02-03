@@ -19,7 +19,7 @@ impl IterativeDeepeningSearcher {
             fringe: VecDeque::new(),
         }
     }
-    pub fn search(&mut self) -> Result<(BasicNode, u64), (SearcherError, u64)> {
+    pub fn search(&mut self) -> Result<(BasicNode, u32), (SearcherError, u32)> {
         let mut expanded_nodes = 0;
         (0..)
             .map(|max_depth| {
@@ -49,7 +49,7 @@ impl Searcher for IterativeDeepeningSearcher {
         self.fringe.pop_back()
     }
     fn new_node(&self,
-                depth: u64,
+                depth: u32,
                 world: Box<world::World>,
                 parent: Option<Rc<Self::NodeType>>)
                 -> Self::NodeType {

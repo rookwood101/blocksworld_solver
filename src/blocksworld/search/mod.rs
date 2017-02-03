@@ -15,7 +15,9 @@ pub use self::a_star_searcher::AStarSearcher;
 
 pub trait Searcher {
     type NodeType: Node;
-    fn search(&mut self, max_depth: Option<u64>) -> Result<(Self::NodeType, u64), (SearcherError, u64)> {
+    fn search(&mut self,
+              max_depth: Option<u32>)
+              -> Result<(Self::NodeType, u32), (SearcherError, u32)> {
         let start_world_clone = self.get_start_world().clone();
         let root_node = self.new_node(0, Box::new(start_world_clone), None);
         self.fringe_push(root_node);
@@ -34,7 +36,7 @@ pub trait Searcher {
             let child_depth = parent_rc.get_depth() + 1;
             match max_depth {
                 Some(max_depth) => {
-                    if child_depth >= max_depth {
+                    if child_depth > max_depth {
                         continue;
                     }
                 }
@@ -64,7 +66,7 @@ pub trait Searcher {
     }
 
     fn new_node(&self,
-                depth: u64,
+                depth: u32,
                 world: Box<world::World>,
                 parent: Option<Rc<Self::NodeType>>)
                 -> Self::NodeType;
@@ -76,7 +78,7 @@ pub trait Searcher {
 
 pub trait Node {
     fn get_world(&self) -> &world::World;
-    fn get_depth(&self) -> u64;
+    fn get_depth(&self) -> u32;
     fn get_parent(&self) -> Option<Rc<Self>>;
     fn print_tree(&self) {
         self.get_world().pretty_print();
@@ -96,12 +98,12 @@ pub trait Node {
 }
 
 pub struct BasicNode {
-    depth: u64,
+    depth: u32,
     world: Box<world::World>,
     parent: Option<Rc<BasicNode>>,
 }
 impl BasicNode {
-    pub fn new(depth: u64, world: Box<world::World>, parent: Option<Rc<Self>>) -> Self {
+    pub fn new(depth: u32, world: Box<world::World>, parent: Option<Rc<Self>>) -> Self {
         BasicNode {
             depth: depth,
             world: world,
@@ -113,7 +115,7 @@ impl Node for BasicNode {
     fn get_world(&self) -> &world::World {
         &*self.world
     }
-    fn get_depth(&self) -> u64 {
+    fn get_depth(&self) -> u32 {
         self.depth
     }
     fn get_parent(&self) -> Option<Rc<BasicNode>> {

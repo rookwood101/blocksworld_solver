@@ -36,7 +36,7 @@ pub fn test() {
     }
 }
 
-fn run_all_searchers_average(start_world: &World, goal_world: &World, difficulty: u8) -> Vec<u64> {
+fn run_all_searchers_average(start_world: &World, goal_world: &World, difficulty: u8) -> Vec<u32> {
     let try_runs = 100;
     let mut runs = vec![0; 4];
 

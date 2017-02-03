@@ -20,7 +20,7 @@ impl AStarSearcher {
             fringe: BinaryHeap::new(),
         }
     }
-    pub fn search(&mut self) -> Result<(AStarNode, u64), (SearcherError, u64)> {
+    pub fn search(&mut self) -> Result<(AStarNode, u32), (SearcherError, u32)> {
         Searcher::search(self, None)
     }
     fn heuristic(&self, world: &world::World) -> usize {
@@ -57,7 +57,7 @@ impl Searcher for AStarSearcher {
         self.fringe.pop()
     }
     fn new_node(&self,
-                depth: u64,
+                depth: u32,
                 world: Box<world::World>,
                 parent: Option<Rc<Self::NodeType>>)
                 -> Self::NodeType {
@@ -72,14 +72,14 @@ impl Searcher for AStarSearcher {
 
 #[derive(Clone)]
 pub struct AStarNode {
-    depth: u64,
+    depth: u32,
     world: Box<world::World>,
     parent: Option<Rc<AStarNode>>,
     start_to_self_cost: usize,
     heuristic: usize,
 }
 impl AStarNode {
-    fn new(depth: u64,
+    fn new(depth: u32,
            world: Box<world::World>,
            parent: Option<Rc<Self>>,
            start_to_self_cost: usize,
@@ -98,7 +98,7 @@ impl Node for AStarNode {
     fn get_world(&self) -> &world::World {
         &*self.world
     }
-    fn get_depth(&self) -> u64 {
+    fn get_depth(&self) -> u32 {
         self.depth
     }
     fn get_parent(&self) -> Option<Rc<Self>> {

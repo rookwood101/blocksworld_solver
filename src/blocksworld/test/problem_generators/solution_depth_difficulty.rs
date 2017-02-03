@@ -62,7 +62,7 @@ impl Searcher for SolutionDepthSearcher {
         Some(node)
     }
     fn new_node(&self,
-                depth: u64,
+                depth: u32,
                 world: Box<World>,
                 parent: Option<Rc<Self::NodeType>>)
                 -> Self::NodeType {
